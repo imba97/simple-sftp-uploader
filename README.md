@@ -11,6 +11,8 @@
 # 配置
 
 ```javascript
+import fs from 'fs'
+
 const sftpUploaderConfig = {
   localDir: 'dist',
   remoteDir: '/www/imba97.cn',
@@ -30,8 +32,7 @@ const sftpUploaderConfig = {
 
 ## 普通上传
 ```javascript
-import { SftpUploader } from 'simple-sftp-uploader'
-import fs from 'fs'
+import SftpUploader from 'simple-sftp-uploader'
 
 const sftpUploader = new SftpUploader(sftpUploaderConfig)
 
@@ -41,8 +42,7 @@ sftpUploader.start()
 ## Webpack
 
 ```javascript
-import { SftpUploader } from 'simple-sftp-uploader'
-import fs from 'fs'
+import SftpUploader from 'simple-sftp-uploader'
 
 // ...
 {
@@ -55,8 +55,8 @@ import fs from 'fs'
 ## vue.config.js
 
 ```javascript
-import { SftpUploader } from 'simple-sftp-uploader'
-import fs from 'fs'
+import SftpUploader from 'simple-sftp-uploader'
+
 // ...
 {
   // ...
