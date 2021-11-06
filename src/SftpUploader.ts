@@ -56,8 +56,11 @@ export default class SftpUploadPlugin {
     // 打包完成后
     compiler.hooks.done.tapAsync('SftpUploadPlugin', async (compilation: any, callback: () => any) => {
       callback()
-      console.log(`[SftpUploadPlugin]: Upload to remote ${this._remote}`)
-      await this.start()
+      // production 才会触发插件
+      if (compiler.options.mode === 'production') {
+        console.log(`[SftpUploadPlugin]: Upload to remote ${this._remote}`)
+        await this.start()
+      }
     })
   }
 
