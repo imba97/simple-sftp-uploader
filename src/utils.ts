@@ -3,16 +3,25 @@ import fs from 'fs'
 const localPath: string[] = []
 const remotePath: string[] = []
 
-export function generateDirectoryTree(src: string, basePath: BasePath) {
-  if (!fs.existsSync(src)) {
-    throw new Error(`${src} 不存在`)
+/**
+ * 生成目录树
+ * @param src 本地目录
+ * @param basePath 
+ * @returns 
+ */
+export function generateDirectoryTree(local: string, remote: string) {
+  if (!fs.existsSync(local)) {
+    throw new Error(`${local} 不存在`)
   }
 
   // 清零
   if (localPath.length > 0) localPath.splice(0, localPath.length)
   if (remotePath.length > 0) remotePath.splice(0, remotePath.length)
 
-  doGenerateDirectoryTree(src, basePath)
+  doGenerateDirectoryTree(local, {
+    local,
+    remote
+  })
 
   return {
     local: localPath,

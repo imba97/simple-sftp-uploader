@@ -11,6 +11,7 @@ import path from 'path'
 export default class SftpUploadPlugin {
 
   private _client!: SSHClient
+  private _sftp: SFTPWrapper
 
   private _local: string
   private _remote: string
@@ -70,10 +71,7 @@ export default class SftpUploadPlugin {
   public async start() {
 
     // 目录树
-    this._directoryTree = generateDirectoryTree(this._local, {
-      local: this._local,
-      remote: this._remote
-    })
+    this._directoryTree = generateDirectoryTree(this._local, this._remote)
 
     await this.connect()
 
@@ -111,15 +109,8 @@ export default class SftpUploadPlugin {
    */
   public exists(src: string) {
     return new Promise((resolve) => {
-      this._client.sftp((_err, _sftp) => {
-        if (!_sftp) {
-          resolve(false)
-          return
-        }
-        _sftp.exists(src, isExists => {
-          resolve(isExists)
-          _sftp.end()
-        })
+      this._sftp.exists(src, isExists => {
+        resolve(isExists)
       })
     })
   }
@@ -183,11 +174,8 @@ export default class SftpUploadPlugin {
    */
   public readdir(src: string): Promise<string[]> {
     return new Promise((resolve) => {
-      this._client.sftp((_err, _sftp) => {
-        _sftp.readdir(src, (_readdirErr, handle) => {
-          resolve(handle.map(item => item.filename))
-          _sftp.end()
-        })
+      this._sftp.readdir(src, (_readdirErr, handle) => {
+        resolve(handle.map(item => item.filename))
       })
     })
   }
@@ -215,24 +203,20 @@ export default class SftpUploadPlugin {
           .join('')}`
 
         if (!await this.exists(fullPath)) {
-          this._client.sftp(async (_err, _sftp) => {
-            _sftp.mkdir(
-              fullPath,
-              {
-                mode: '0755'
-              },
-              () => {
-                // 下一级目录
-                if (index < dirs.length - 1) {
-                  resolve(this.mkdir(dirs, index + 1))
-                  _sftp.end()
-                } else {
-                  resolve(null)
-                  _sftp.end()
-                }
+          this._sftp.mkdir(
+            fullPath,
+            {
+              mode: '0755'
+            },
+            () => {
+              // 下一级目录
+              if (index < dirs.length - 1) {
+                resolve(this.mkdir(dirs, index + 1))
+              } else {
+                resolve(null)
               }
-            )
-          })
+            }
+          )
         } else {
           // 下一级目录
           if (index < dirs.length - 1) {
@@ -261,7 +245,11 @@ export default class SftpUploadPlugin {
       this._client = new SSHClient()
       this._client
         .on('ready', () => {
-          resolve(null)
+
+          this._client.sftp((_err, _sftp) => {
+            this._sftp = _sftp
+            resolve(null)
+          })
         })
         .on('error', (err) => {
           reject(err)
@@ -271,6 +259,7 @@ export default class SftpUploadPlugin {
   }
 
   private close() {
+    this._sftp.end()
     this._client.end()
   }
 
@@ -298,16 +287,13 @@ export default class SftpUploadPlugin {
    */
   private async doUpload(_local: string, _remote: string) {
     return new Promise((resolve) => {
-      this._client.sftp((_err, _sftp) => {
-        _sftp.fastPut(_local, _remote, (err) => {
-          if (err) {
-            console.log(`${this._consoleMark.info} 上传 ${_remote}`)
-          } else {
-            console.log(`${this._consoleMark.info} 上传 ${_remote}`)
-          }
-          resolve(null)
-          _sftp.end()
-        })
+      this._sftp.fastPut(_local, _remote, (err) => {
+        if (err) {
+          console.log(`${this._consoleMark.info} 上传失败 ${_remote}`)
+        } else {
+          console.log(`${this._consoleMark.info} 上传 ${_remote}`)
+        }
+        resolve(null)
       })
     })
   }

@@ -8,3 +8,4 @@ tslint.json
 .history/
 src/
 .travis.yml
+CHANGELOG.md
