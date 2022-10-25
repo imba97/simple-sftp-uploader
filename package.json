@@ -1,7 +1,7 @@
 {
   "name": "simple-sftp-uploader",
-  "version": "1.0.5",
-  "description": "用于将项目部署到服务器的SFTP上传器",
+  "version": "1.0.6",
+  "description": "用于将项目部署到服务器的 SFTP 上传器",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

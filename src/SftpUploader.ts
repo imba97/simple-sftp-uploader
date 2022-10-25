@@ -339,7 +339,7 @@ export default class SftpUploadPlugin {
   }
 }
 
-interface SftpUploaderOptions {
+export interface SftpUploaderOptions {
   /**
    * 本地目录
    */

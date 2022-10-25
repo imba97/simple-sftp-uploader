@@ -107,7 +107,7 @@ readdir(src: string): Promise<string[]>
 exec(script: string): Promise<null>
 
 // 创建文件夹
-mkdir(dirPath: string)
+mkdir(dirPath: string): Promise<null>
 
 // 关闭
 close(): void
