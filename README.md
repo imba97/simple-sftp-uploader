@@ -1,114 +1,212 @@
 # simple-sftp-uploader
 
-一个简单的 SFTP 上传器，把指定文件夹中的文件上传到服务器上。
+> Upload the `dist/` of your project to a remote server via SFTP. **Bundler-agnostic unplugin** for vite, rollup, rolldown, webpack, rspack and esbuild.
 
-可以单独用，也是个`webpack`插件。
+Built on top of [unplugin](https://unplugin.unjs.io), so the same package works across every mainstream bundler — and can also be used as a plain SFTP client.
 
-# 导入
+## Features
 
-```javascript
-import SftpUploader from 'simple-sftp-uploader'
+- ✅ One package, six bundler integrations (`vite`, `rollup`, `rolldown`, `webpack`, `rspack`, `esbuild`)
+- ✅ Subpath imports so consumers can opt into a single bundler: `simple-sftp-uploader/vite`
+- ✅ Standalone `SftpUploader` class for scripting / CI use
+- ✅ Strict TypeScript, fully async/await, no `any`
+- ✅ Automatic production gate (skips dev / watch builds)
+- ✅ Backed by `ssh2` — supports private key + password auth
+
+## Install
+
+```bash
+pnpm add -D simple-sftp-uploader
+# or
+npm install -D simple-sftp-uploader
 ```
 
-# 配置
+## Configuration
 
-```javascript
-import fs from 'fs'
+```ts
+import fs from 'node:fs'
 
 const sftpUploaderConfig = {
-  localDir: 'dist',
-  remoteDir: '/www/imba97.cn',
+  localDir: 'dist', // local directory to mirror
+  remoteDir: '/var/www/example.com', // remote target
   connect: {
     host: '1.2.3.4',
     port: 22,
     username: 'root',
-    privateKey: fs.readFileSync('C:/Users/imba97/.ssh/id_rsa')
+    privateKey: fs.readFileSync('C:/Users/you/.ssh/id_rsa')
   },
-  rmExclude: ['favicon.ico']
+  rmExclude: ['favicon.ico'] // files in remoteDir to keep when clearing
+  // production: true,        // force-run even in dev (default: auto)
 }
 ```
 
-# 上传
+## Usage
 
-## 普通上传
+### Pick the right subpath for your bundler
 
-```javascript
-import SftpUploader from 'simple-sftp-uploader'
+| Bundler  | Import                                |
+| -------- | ------------------------------------- |
+| vite     | `simple-sftp-uploader/vite`           |
+| rollup   | `simple-sftp-uploader/rollup`         |
+| rolldown | `simple-sftp-uploader/rolldown`       |
+| webpack  | `simple-sftp-uploader/webpack`        |
+| rspack   | `simple-sftp-uploader/rspack`         |
+| esbuild  | `simple-sftp-uploader/esbuild`        |
+| any      | `simple-sftp-uploader` (multi-export) |
 
-const sftpUploader = new SftpUploader(sftpUploaderConfig)
+### Vite
 
-sftpUploader.start()
-```
+```ts
+import SftpUploader from 'simple-sftp-uploader/vite'
+// vite.config.ts
+import { defineConfig } from 'vite'
 
-## Webpack
-
-```javascript
-import SftpUploader from 'simple-sftp-uploader'
-
-// ...
-{
-  plugins: [new SftpUploader(sftpUploaderConfig)]
-}
-```
-
-## vue.config.js
-
-```javascript
-import SftpUploader from 'simple-sftp-uploader'
-
-// ...
-{
-  // ...
-  chainWebpack(config) {
-    // 添加插件
-    config
-      .plugin('SftpUploaderPlugin')
-      .use(SftpUploader)
-      .tap(() => [sftpUploaderConfig])
-  },
-  // ...
-}
-```
-
-## 作为上传器使用
-
-配置连接信息
-
-```javascript
-const uploader = new Uploader({
-  connect: {
-    host: '1.2.3.4',
-    port: 22,
-    username: 'root',
-    privateKey: fs.readFileSync('C:/Users/imba97/.ssh/id_rsa')
-  }
+export default defineConfig({
+  plugins: [
+    SftpUploader({
+      localDir: 'dist',
+      remoteDir: '/var/www/example.com',
+      connect: { host: '1.2.3.4', username: 'root', privateKey: '<your-private-key>' }
+    })
+  ]
 })
 ```
 
-开放的接口
+### Webpack
 
-```typescript
-// 连接，连接后才能执行以下操作
-connect(): Promise<null>
+```js
+// webpack.config.js
+const SftpUploader = require('simple-sftp-uploader/webpack').default
 
-// 上传文件
-uploadFile(local: string, remote: string): Promise<null>
-
-// 判断远程文件是否存在
-exists(src: string): Promise<boolean>
-
-// 删除文件夹内所有文件
-deleteFiles(remote: string, exclude?: RegExp): Promise<null>
-
-// 读取文件夹下的文件
-readdir(src: string): Promise<string[]>
-
-// 执行 shell 命令
-exec(script: string): Promise<null>
-
-// 创建文件夹
-mkdir(dirPath: string): Promise<null>
-
-// 关闭
-close(): void
+module.exports = {
+  plugins: [
+    new SftpUploader({
+      localDir: 'dist',
+      remoteDir: '/var/www/example.com',
+      connect: { host: '1.2.3.4', username: 'root', privateKey: '<your-private-key>' }
+    })
+  ]
+}
 ```
+
+### Rspack
+
+```ts
+// rspack.config.ts
+import SftpUploader from 'simple-sftp-uploader/rspack'
+
+export default {
+  plugins: [
+    SftpUploader({ /* same options */ })
+  ]
+}
+```
+
+### Rollup
+
+```ts
+// rollup.config.ts
+import SftpUploader from 'simple-sftp-uploader/rollup'
+
+export default {
+  plugins: [
+    SftpUploader({ /* same options */ })
+  ]
+}
+```
+
+### Esbuild
+
+```ts
+import { build } from 'esbuild'
+import SftpUploader from 'simple-sftp-uploader/esbuild'
+
+await build({
+  entryPoints: ['src/index.ts'],
+  bundle: true,
+  outdir: 'dist',
+  plugins: [
+    SftpUploader({ /* same options */ })
+  ]
+})
+```
+
+### Multi-bundler (default export)
+
+If you don't know which bundler your consumer is on, the default export resolves to the right shape automatically.
+
+```ts
+import SftpUploader from 'simple-sftp-uploader'
+
+// Use as a vite plugin
+SftpUploader.vite({ /* options */ })
+
+// Use as a webpack plugin
+const Plugin = SftpUploader.webpack({ /* options */ })
+```
+
+### Standalone uploader (CI / scripts)
+
+```ts
+import { SftpUploader } from 'simple-sftp-uploader'
+
+const uploader = new SftpUploader({
+  localDir: 'dist',
+  remoteDir: '/var/www/example.com',
+  connect: { host: '1.2.3.4', username: 'root', privateKey: fs.readFileSync('key') }
+})
+
+await uploader.start()
+// or drive it manually:
+await uploader.connect()
+await uploader.uploadFile('local.txt', '/var/www/example.com/local.txt')
+await uploader.close()
+```
+
+### Public API on `SftpUploader`
+
+```ts
+class SftpUploader {
+  constructor(options: SftpUploaderOptions)
+
+  // Bulk mirror (used by the unplugin writeBundle hook)
+  start(): Promise<void>
+
+  // Low-level
+  connect(): Promise<void>
+  uploadFile(local: string, remote: string): Promise<void>
+  exists(remote: string): Promise<boolean>
+  readdir(remote: string): Promise<string[]>
+  deleteFiles(remote: string, exclude?: RegExp): Promise<void>
+  exec(command: string): Promise<{ stdout: string, stderr: string, code: number }>
+  mkdir(remote: string): Promise<void>
+  close(): void
+}
+```
+
+## Configuration reference
+
+| Field         | Type                  | Required | Default        | Description |
+| ------------- | --------------------- | -------- | -------------- | ----------- |
+| `localDir`    | `string`              | ✅       | —              | Local directory to mirror. |
+| `remoteDir`   | `string`              | ❌       | `/`            | Remote target directory. Optional when used as a low-level uploader. |
+| `connect`     | `ssh2.ConnectConfig`  | ✅       | —              | SSH connection settings (`host`, `username`, `privateKey` or `password`, etc.). |
+| `rmExclude`   | `string[]`            | ❌       | `[]`           | Filenames in `remoteDir` to keep when clearing it. |
+| `production`  | `boolean`             | ❌       | `auto (NODE_ENV)` | `true` forces upload in any env, `false` requires `NODE_ENV=production`. |
+
+## Development
+
+```bash
+pnpm install      # install deps (allowBuilds: esbuild, simple-git-hooks)
+pnpm stub         # build .ts entries in-place for local testing
+pnpm build        # produce dist/ (ESM + dts)
+pnpm test         # vitest run
+pnpm lint         # eslint (uses @antfu/eslint-config)
+pnpm typecheck    # tsc --noEmit
+```
+
+`pnpm release` runs [`bumpp`](https://github.com/antfu/bumpp) to bump the version, commit, tag, and push — the [release workflow](.github/workflows/release.yaml) takes over from there to publish on npm and generate the GitHub release via `changelogithub`.
+
+## License
+
+[MIT](./LICENSE)

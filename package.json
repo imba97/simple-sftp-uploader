@@ -1,31 +1,110 @@
 {
   "name": "simple-sftp-uploader",
+  "type": "module",
   "version": "1.0.6",
-  "description": "用于将项目部署到服务器的 SFTP 上传器",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "dev": "tsc -w",
-    "build": "tsc"
+  "packageManager": "pnpm@11.9.0",
+  "description": "Upload the dist of your project to a remote server via SFTP. Bundler-agnostic unplugin for vite / rollup / rolldown / webpack / rspack / esbuild.",
+  "author": "imba97",
+  "license": "MIT",
+  "homepage": "https://github.com/imba97/simple-sftp-uploader#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/imba97/simple-sftp-uploader.git"
+  },
+  "bugs": {
+    "url": "https://github.com/imba97/simple-sftp-uploader/issues"
   },
   "keywords": [
     "sftp",
-    "uploader"
+    "uploader",
+    "deploy",
+    "unplugin",
+    "vite",
+    "rollup",
+    "rolldown",
+    "webpack",
+    "rspack",
+    "esbuild"
   ],
-  "author": "imba97",
-  "license": "MIT",
-  "homepage": "https://github.com/imba97/simple-sftp-uploader",
-  "bugs": "https://github.com/imba97/simple-sftp-uploader/issues",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/imba97/simple-sftp-uploader.git"
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./vite": {
+      "types": "./dist/vite.d.mts",
+      "import": "./dist/vite.mjs"
+    },
+    "./webpack": {
+      "types": "./dist/webpack.d.mts",
+      "import": "./dist/webpack.mjs"
+    },
+    "./rollup": {
+      "types": "./dist/rollup.d.mts",
+      "import": "./dist/rollup.mjs"
+    },
+    "./rolldown": {
+      "types": "./dist/rolldown.d.mts",
+      "import": "./dist/rolldown.mjs"
+    },
+    "./rspack": {
+      "types": "./dist/rspack.d.mts",
+      "import": "./dist/rspack.mjs"
+    },
+    "./esbuild": {
+      "types": "./dist/esbuild.d.mts",
+      "import": "./dist/esbuild.mjs"
+    },
+    "./package.json": "./package.json"
   },
-  "devDependencies": {
-    "@types/node": "^16.10.3",
-    "@types/ssh2": "^0.5.48",
-    "typescript": "^4.4.3"
+  "types": "./dist/index.d.mts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*.d.mts",
+        "./*"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepare": "simple-git-hooks || true",
+    "stub": "unbuild --stub",
+    "dev": "unbuild --stub",
+    "build": "unbuild",
+    "lint": "eslint --cache",
+    "lint:fix": "eslint --cache --fix",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "release": "bumpp"
+  },
+  "nano-staged": {
+    "*.{ts,tsx,js,mjs,cjs,json,md}": "eslint --cache --fix"
+  },
+  "peerDependencies": {
+    "ssh2": "^1.4.0"
   },
   "dependencies": {
-    "ssh2": "^1.4.0"
+    "ssh2": "^1.17.0",
+    "unplugin": "^3.3.0"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^9.1.0",
+    "@types/node": "^26.1.0",
+    "@types/ssh2": "^1.15.5",
+    "bumpp": "^11.1.0",
+    "eslint": "^10.6.0",
+    "nano-staged": "^1.0.2",
+    "simple-git-hooks": "^2.13.1",
+    "typescript": "^6.0.3",
+    "unbuild": "^3.6.1",
+    "vitest": "^4.1.9"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm nano-staged"
   }
 }

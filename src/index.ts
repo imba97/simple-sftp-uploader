@@ -1,3 +1,7 @@
-import SftpUploader from './SftpUploader'
+import type { SftpUploaderOptions } from './core/types'
+import unplugin, { factory, SftpUploader } from './factory'
 
-export = SftpUploader
+export { factory, SftpUploader }
+export type { SftpUploaderOptions }
+
+export default unplugin

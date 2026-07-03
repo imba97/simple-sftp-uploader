@@ -1,0 +1,9 @@
+allowBuilds:
+  cpu-features: true
+  esbuild: true
+  simple-git-hooks: true
+  ssh2: true
+
+shellEmulator: true
+
+trustPolicy: no-downgrade
